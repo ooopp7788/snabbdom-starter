@@ -1,5 +1,5 @@
-(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-'use strict';
+(function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
+"use strict";
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -7,22 +7,212 @@ var _snabbdom = require('snabbdom');
 
 var _snabbdom2 = _interopRequireDefault(_snabbdom);
 
-var _snabbdomH = require('snabbdom/h');
+// import { view, update, init } from './counter/countList.js'
 
-var _snabbdomH2 = _interopRequireDefault(_snabbdomH);
+var _todoTodoListJs = require('./todo/todoList.js');
 
 var patch = _snabbdom2['default'].init([require('snabbdom/modules/class'), // makes it easy to toggle classes
 require('snabbdom/modules/props'), // for setting properties on DOM elements
 require('snabbdom/modules/style'), // handles styling on elements with support for animations
 require('snabbdom/modules/eventlisteners')]);
 
-var vnode = (0, _snabbdomH2['default'])('div', { style: { fontWeight: 'bold' } }, 'Hello world');
-patch(document.getElementById('placeholder'), vnode);
 // attaches event listeners
+var state = (0, _todoTodoListJs.init)();
+var oldVnode = document.getElementById('placeholder');
 
-},{"snabbdom":8,"snabbdom/h":2,"snabbdom/modules/class":4,"snabbdom/modules/eventlisteners":5,"snabbdom/modules/props":6,"snabbdom/modules/style":7}],2:[function(require,module,exports){
+function main(state, vnode, _ref) {
+  var view = _ref.view;
+  var update = _ref.update;
+
+  var newVnode = view(state, function (event) {
+    var newState = update(state, event);
+    main(newState, newVnode, { view: view, update: update });
+  });
+  patch(vnode, newVnode);
+}
+
+main(state, oldVnode, { view: _todoTodoListJs.view, update: _todoTodoListJs.update });
+
+},{"./todo/todoList.js":3,"snabbdom":10,"snabbdom/modules/class":6,"snabbdom/modules/eventlisteners":7,"snabbdom/modules/props":8,"snabbdom/modules/style":9}],2:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _snabbdomH = require('snabbdom/h');
+
+var _snabbdomH2 = _interopRequireDefault(_snabbdomH);
+
+var EDIT = Symbol('edit');
+var SAVE = Symbol('save');
+var UPDATE = Symbol('update');
+
+var action = {
+  EDIT: EDIT,
+  SAVE: SAVE,
+  UPDATE: UPDATE
+};
+
+function init() {
+  return {
+    status: 'save',
+    note: 'test'
+  };
+}
+
+function view(state, handler) {
+  var children = null;
+  if (state.status === 'edit') {
+    children = [(0, _snabbdomH2['default'])('input', {
+      props: {
+        type: 'text',
+        value: state.note
+      },
+      on: { input: function input(e) {
+          return handler.call(null, { type: UPDATE, data: e.target.value });
+        } }
+    }), (0, _snabbdomH2['default'])('button', {
+      on: {
+        click: handler.bind(null, { type: SAVE })
+      }
+    }, '保存')];
+  } else {
+    children = [(0, _snabbdomH2['default'])('span', state.note), (0, _snabbdomH2['default'])('button', {
+      on: {
+        click: handler.bind(null, { type: EDIT })
+      }
+    }, '编辑')];
+  }
+  return (0, _snabbdomH2['default'])('div', children);
+}
+
+function update(state, action) {
+  switch (action.type) {
+    case EDIT:
+      state.status = 'edit';
+      break;
+    case SAVE:
+      state.status = 'save';
+      break;
+    case UPDATE:
+      state.note = action.data;
+      break;
+    default:
+      break;
+  }
+  return state;
+}
+
+exports['default'] = { view: view, update: update, init: init, action: action };
+module.exports = exports['default'];
+
+},{"snabbdom/h":4}],3:[function(require,module,exports){
+"use strict";
+
+Object.defineProperty(exports, '__esModule', {
+  value: true
+});
+
+function _interopRequireWildcard(obj) { if (obj && obj.__esModule) { return obj; } else { var newObj = {}; if (obj != null) { for (var key in obj) { if (Object.prototype.hasOwnProperty.call(obj, key)) newObj[key] = obj[key]; } } newObj['default'] = obj; return newObj; } }
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+var _snabbdomH = require('snabbdom/h');
+
+var _snabbdomH2 = _interopRequireDefault(_snabbdomH);
+
+var _todoItem = require('./todoItem');
+
+var todo = _interopRequireWildcard(_todoItem);
+
+var ADD = Symbol('add');
+var UPDATE = Symbol('update todo');
+var REMOVE = Symbol('remove');
+var CLEAR = Symbol('clear');
+
+var action = {
+  ADD: ADD,
+  UPDATE: UPDATE,
+  REMOVE: REMOVE,
+  CLEAR: CLEAR
+};
+
+function init() {
+  return { nextID: 1, todos: [] };
+}
+
+function view(model, handler) {
+  return (0, _snabbdomH2['default'])('div', [(0, _snabbdomH2['default'])('button', {
+    on: { click: handler.bind(null, { type: ADD }) }
+  }, 'Add'), (0, _snabbdomH2['default'])('button', {
+    on: { click: handler.bind(null, { type: CLEAR }) }
+  }, 'Clear'), (0, _snabbdomH2['default'])('hr'), (0, _snabbdomH2['default'])('div.todo-list', model.todos.map(function (item) {
+    return todoItemView(item, handler);
+  }))]);
+}
+
+function todoItemView(item, handler) {
+  return (0, _snabbdomH2['default'])('div', { key: item.id }, [(0, _snabbdomH2['default'])('button', {
+    on: { click: handler.bind(null, { type: REMOVE, id: item.id }) }
+  }, 'remove'), todo.view(item.todo, function (todoAction) {
+    return handler({ type: UPDATE, id: item.id, data: todoAction });
+  })]);
+}
+
+function update(model, action) {
+  // ADD,
+  // UPDATE,
+  // REMOVE,
+  // CLEAR
+  switch (action.type) {
+    case ADD:
+      model.todos.push({
+        id: model.nextID,
+        todo: todo.init()
+      });
+      model.nextID++;
+      break;
+    case UPDATE:
+      model.todos = model.todos.map(function (item) {
+        if (item.id === action.id) {
+          item.todo = todo.update(item.todo, action.data);
+        }
+        return item;
+      });
+      break;
+    case REMOVE:
+      debugger;
+      model.todos = model.todos.filter(function (item) {
+        return !item.id === action.id;
+      });
+      break;
+    case CLEAR:
+      model = init();
+      break;
+    default:
+      break;
+  }
+  return model;
+}
+
+exports['default'] = { view: view, update: update, action: action, init: init };
+module.exports = exports['default'];
+
+},{"./todoItem":2,"snabbdom/h":4}],4:[function(require,module,exports){
 var VNode = require('./vnode');
 var is = require('./is');
+
+function addNS(data, children) {
+  data.ns = 'http://www.w3.org/2000/svg';
+  if (children !== undefined) {
+    for (var i = 0; i < children.length; ++i) {
+      addNS(children[i].data, children[i].children);
+    }
+  }
+}
 
 module.exports = function h(sel, b, c) {
   var data = {}, children, text, i;
@@ -40,16 +230,19 @@ module.exports = function h(sel, b, c) {
       if (is.primitive(children[i])) children[i] = VNode(undefined, undefined, undefined, children[i]);
     }
   }
+  if (sel[0] === 's' && sel[1] === 'v' && sel[2] === 'g') {
+    addNS(data, children);
+  }
   return VNode(sel, data, children, text, undefined);
 };
 
-},{"./is":3,"./vnode":9}],3:[function(require,module,exports){
+},{"./is":5,"./vnode":11}],5:[function(require,module,exports){
 module.exports = {
   array: Array.isArray,
   primitive: function(s) { return typeof s === 'string' || typeof s === 'number'; },
 };
 
-},{}],4:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 function updateClass(oldVnode, vnode) {
   var cur, name, elm = vnode.elm,
       oldClass = oldVnode.data.class || {},
@@ -64,15 +257,18 @@ function updateClass(oldVnode, vnode) {
 
 module.exports = {create: updateClass, update: updateClass};
 
-},{}],5:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 var is = require('../is');
 
 function arrInvoker(arr) {
-  return function() { arr[0](arr[1]); };
+  return function() {
+    // Special case when length is two, for performance
+    arr.length === 2 ? arr[0](arr[1]) : arr[0].apply(undefined, arr.slice(1));
+  };
 }
 
-function fnInvoker(arr) {
-  return function(ev) { arr[0](ev); };
+function fnInvoker(o) {
+  return function(ev) { o.fn(ev); };
 }
 
 function updateEventListeners(oldVnode, vnode) {
@@ -86,16 +282,17 @@ function updateEventListeners(oldVnode, vnode) {
       if (is.array(cur)) {
         elm.addEventListener(name, arrInvoker(cur));
       } else {
-        cur = [cur];
+        cur = {fn: cur};
         on[name] = cur;
         elm.addEventListener(name, fnInvoker(cur));
       }
-    } else if (old.length === 2) {
-      old[0] = cur[0]; // Deliberately modify old array since it's
-      old[1] = cur[1]; // captured in closure created with `arrInvoker`
+    } else if (is.array(old)) {
+      // Deliberately modify old array since it's captured in closure created with `arrInvoker`
+      old.length = cur.length;
+      for (var i = 0; i < old.length; ++i) old[i] = cur[i];
       on[name]  = old;
     } else {
-      old[0] = cur;
+      old.fn = cur;
       on[name] = old;
     }
   }
@@ -103,7 +300,7 @@ function updateEventListeners(oldVnode, vnode) {
 
 module.exports = {create: updateEventListeners, update: updateEventListeners};
 
-},{"../is":3}],6:[function(require,module,exports){
+},{"../is":5}],8:[function(require,module,exports){
 function updateProps(oldVnode, vnode) {
   var key, cur, old, elm = vnode.elm,
       oldProps = oldVnode.data.props || {}, props = vnode.data.props || {};
@@ -118,7 +315,7 @@ function updateProps(oldVnode, vnode) {
 
 module.exports = {create: updateProps, update: updateProps};
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 var raf = requestAnimationFrame || setTimeout;
 var nextFrame = function(fn) { raf(function() { raf(fn); }); };
 
@@ -179,7 +376,7 @@ function applyRemoveStyle(vnode, rm) {
 
 module.exports = {create: updateStyle, update: updateStyle, destroy: applyDestroyStyle, remove: applyRemoveStyle};
 
-},{}],8:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 // jshint newcap: false
 /* global require, module, document, Element */
 'use strict';
@@ -195,8 +392,6 @@ function emptyNodeAt(elm) {
 }
 
 var emptyNode = VNode('', {}, [], undefined, undefined);
-
-var insertedVnodeQueue;
 
 function sameVnode(vnode1, vnode2) {
   return vnode1.key === vnode2.key && vnode1.sel === vnode2.sel;
@@ -228,7 +423,7 @@ function init(modules) {
     }
   }
 
-  function createElm(vnode) {
+  function createElm(vnode, insertedVnodeQueue) {
     var i, data = vnode.data;
     if (isDef(data)) {
       if (isDef(i = data.hook) && isDef(i = i.init)) i(vnode);
@@ -248,7 +443,7 @@ function init(modules) {
       if (dotIdx > 0) elm.className = sel.slice(dot+1).replace(/\./g, ' ');
       if (is.array(children)) {
         for (i = 0; i < children.length; ++i) {
-          elm.appendChild(createElm(children[i]));
+          elm.appendChild(createElm(children[i], insertedVnodeQueue));
         }
       } else if (is.primitive(vnode.text)) {
         elm.appendChild(document.createTextNode(vnode.text));
@@ -265,9 +460,9 @@ function init(modules) {
     return vnode.elm;
   }
 
-  function addVnodes(parentElm, before, vnodes, startIdx, endIdx) {
+  function addVnodes(parentElm, before, vnodes, startIdx, endIdx, insertedVnodeQueue) {
     for (; startIdx <= endIdx; ++startIdx) {
-      parentElm.insertBefore(createElm(vnodes[startIdx]), before);
+      parentElm.insertBefore(createElm(vnodes[startIdx], insertedVnodeQueue), before);
     }
   }
 
@@ -305,7 +500,7 @@ function init(modules) {
     }
   }
 
-  function updateChildren(parentElm, oldCh, newCh) {
+  function updateChildren(parentElm, oldCh, newCh, insertedVnodeQueue) {
     var oldStartIdx = 0, newStartIdx = 0;
     var oldEndIdx = oldCh.length - 1;
     var oldStartVnode = oldCh[0];
@@ -321,20 +516,20 @@ function init(modules) {
       } else if (isUndef(oldEndVnode)) {
         oldEndVnode = oldCh[--oldEndIdx];
       } else if (sameVnode(oldStartVnode, newStartVnode)) {
-        patchVnode(oldStartVnode, newStartVnode);
+        patchVnode(oldStartVnode, newStartVnode, insertedVnodeQueue);
         oldStartVnode = oldCh[++oldStartIdx];
         newStartVnode = newCh[++newStartIdx];
       } else if (sameVnode(oldEndVnode, newEndVnode)) {
-        patchVnode(oldEndVnode, newEndVnode);
+        patchVnode(oldEndVnode, newEndVnode, insertedVnodeQueue);
         oldEndVnode = oldCh[--oldEndIdx];
         newEndVnode = newCh[--newEndIdx];
       } else if (sameVnode(oldStartVnode, newEndVnode)) { // Vnode moved right
-        patchVnode(oldStartVnode, newEndVnode);
+        patchVnode(oldStartVnode, newEndVnode, insertedVnodeQueue);
         parentElm.insertBefore(oldStartVnode.elm, oldEndVnode.elm.nextSibling);
         oldStartVnode = oldCh[++oldStartIdx];
         newEndVnode = newCh[--newEndIdx];
       } else if (sameVnode(oldEndVnode, newStartVnode)) { // Vnode moved left
-        patchVnode(oldEndVnode, newStartVnode);
+        patchVnode(oldEndVnode, newStartVnode, insertedVnodeQueue);
         parentElm.insertBefore(oldEndVnode.elm, oldStartVnode.elm);
         oldEndVnode = oldCh[--oldEndIdx];
         newStartVnode = newCh[++newStartIdx];
@@ -342,11 +537,11 @@ function init(modules) {
         if (isUndef(oldKeyToIdx)) oldKeyToIdx = createKeyToOldIdx(oldCh, oldStartIdx, oldEndIdx);
         idxInOld = oldKeyToIdx[newStartVnode.key];
         if (isUndef(idxInOld)) { // New element
-          parentElm.insertBefore(createElm(newStartVnode), oldStartVnode.elm);
+          parentElm.insertBefore(createElm(newStartVnode, insertedVnodeQueue), oldStartVnode.elm);
           newStartVnode = newCh[++newStartIdx];
         } else {
           elmToMove = oldCh[idxInOld];
-          patchVnode(elmToMove, newStartVnode);
+          patchVnode(elmToMove, newStartVnode, insertedVnodeQueue);
           oldCh[idxInOld] = undefined;
           parentElm.insertBefore(elmToMove.elm, oldStartVnode.elm);
           newStartVnode = newCh[++newStartIdx];
@@ -355,13 +550,13 @@ function init(modules) {
     }
     if (oldStartIdx > oldEndIdx) {
       before = isUndef(newCh[newEndIdx+1]) ? null : newCh[newEndIdx+1].elm;
-      addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx);
+      addVnodes(parentElm, before, newCh, newStartIdx, newEndIdx, insertedVnodeQueue);
     } else if (newStartIdx > newEndIdx) {
       removeVnodes(parentElm, oldCh, oldStartIdx, oldEndIdx);
     }
   }
 
-  function patchVnode(oldVnode, vnode) {
+  function patchVnode(oldVnode, vnode, insertedVnodeQueue) {
     var i, hook;
     if (isDef(i = vnode.data) && isDef(hook = i.hook) && isDef(i = hook.prepatch)) {
       i(oldVnode, vnode);
@@ -377,9 +572,9 @@ function init(modules) {
     }
     if (isUndef(vnode.text)) {
       if (isDef(oldCh) && isDef(ch)) {
-        if (oldCh !== ch) updateChildren(elm, oldCh, ch);
+        if (oldCh !== ch) updateChildren(elm, oldCh, ch, insertedVnodeQueue);
       } else if (isDef(ch)) {
-        addVnodes(elm, null, ch, 0, ch.length - 1);
+        addVnodes(elm, null, ch, 0, ch.length - 1, insertedVnodeQueue);
       } else if (isDef(oldCh)) {
         removeVnodes(elm, oldCh, 0, oldCh.length - 1);
       }
@@ -389,28 +584,26 @@ function init(modules) {
     if (isDef(hook) && isDef(i = hook.postpatch)) {
       i(oldVnode, vnode);
     }
-    return vnode;
   }
 
   return function(oldVnode, vnode) {
     var i;
-    insertedVnodeQueue = [];
+    var insertedVnodeQueue = [];
     for (i = 0; i < cbs.pre.length; ++i) cbs.pre[i]();
     if (oldVnode instanceof Element) {
       if (oldVnode.parentElement !== null) {
-        createElm(vnode);
+        createElm(vnode, insertedVnodeQueue);
         oldVnode.parentElement.replaceChild(vnode.elm, oldVnode);
       } else {
         oldVnode = emptyNodeAt(oldVnode);
-        patchVnode(oldVnode, vnode);
+        patchVnode(oldVnode, vnode, insertedVnodeQueue);
       }
     } else {
-      patchVnode(oldVnode, vnode);
+      patchVnode(oldVnode, vnode, insertedVnodeQueue);
     }
     for (i = 0; i < insertedVnodeQueue.length; ++i) {
       insertedVnodeQueue[i].data.hook.insert(insertedVnodeQueue[i]);
     }
-    insertedVnodeQueue = undefined;
     for (i = 0; i < cbs.post.length; ++i) cbs.post[i]();
     return vnode;
   };
@@ -418,7 +611,7 @@ function init(modules) {
 
 module.exports = {init: init};
 
-},{"./is":3,"./vnode":9}],9:[function(require,module,exports){
+},{"./is":5,"./vnode":11}],11:[function(require,module,exports){
 module.exports = function(sel, data, children, text, elm) {
   var key = data === undefined ? undefined : data.key;
   return {sel: sel, data: data, children: children,

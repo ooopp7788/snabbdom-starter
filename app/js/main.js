@@ -1,7 +1,8 @@
 "use strict";
 
 import snabbdom from 'snabbdom';
-import h from 'snabbdom/h';
+// import { view, update, init } from './counter/countList.js'
+import { view, update, init } from './todo/todoList.js'
 
 const patch = snabbdom.init([
   require('snabbdom/modules/class'),          // makes it easy to toggle classes
@@ -10,8 +11,15 @@ const patch = snabbdom.init([
   require('snabbdom/modules/eventlisteners'), // attaches event listeners
 ]);
 
+let state = init()
+const oldVnode = document.getElementById('placeholder')
 
-var vnode = h('div', {style: {fontWeight: 'bold'}}, 'Hello world');
-patch(document.getElementById('placeholder'), vnode);
+function main(state, vnode, { view, update }) {
+  const newVnode = view(state, event => {
+    const newState = update(state, event)
+    main(newState, newVnode, { view, update })
+  })
+  patch(vnode ,newVnode)
+}
 
-
+main(state, oldVnode, { view, update })
